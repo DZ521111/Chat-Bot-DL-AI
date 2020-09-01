@@ -1,0 +1,164 @@
+# -*- coding: utf-8 -*-
+"""
+Created on Tue Sep  1 13:43:43 2020
+
+@author: DHRUV
+"""
+
+import sqlite3
+import json
+from datetime import datetime
+
+timeframe = "2018-10"
+sql_change = []
+connection = sqlite3.connect("{}.db".format(timeframe))
+c = connection.cursor()
+
+def create_table():
+    c.execute("""CREATE TABLE IF NOT EXISTS 
+              parent_reply(parent_id text primary key,
+              comment_id text unique, parent text,
+              comment text, subreddit text, unix int,
+              score int)""")
+              
+def formation_data(data):
+    data = data.replace("\n", "  new_line_char ").replace("\r", "  new_line_char ").replace('"', "'")
+    return data
+
+def find_parent(pid):
+    try:
+        sql = "select comment from parent_reply where comment_id = '{pid}' limit 1"
+        c.execute(sql)
+        result = c.fetchone()
+        if (result != None):
+            return result[0]
+        else:
+            return False
+    except Exception as e:
+        print("find_parent_id", e)
+        return False
+
+def find_existing_score(pid):
+    try:
+        sql = "select score from parent_reply where parent_id = '{}' limit 1".format(pid)
+        c.execute(sql)
+        result = c.fetchone()
+        if (result != None):
+            return result[0]
+        else:
+            return False
+    except Exception as e:
+        print("find_parent_id", e)
+        return False
+
+def accept(data):
+    if (len(data.split(" ")) > 60 or len(data) < 1):
+        return False
+    elif (len(data) > 1000):
+        return False
+    elif (data == "[deleted]" or data == ["removed"]):
+        return False
+    else:
+        return True
+    
+def sql_insert_rep_cmt(cid, pid, par, cmt, sr, time, sc):
+    try:
+        sql = """update parent_reply set parent_id = ?, comment_id = ?, parent = ?, comment = ?, subreddit = ?, unix = ?, score = ?, where parent_id = {'pid'}"""
+        exchange_bldr(sql)
+    except Exception as e:
+        print("Error_cmt", str(e))
+
+def sql_insert_has_par(cid, pid, par, cmt, sr, time, sc):
+    try:
+        sql = """insert into parent_reply (parent_id, comment_id, parent, comment, subreddit, unix, score) values ("{}", "{}", "{}", "{}", "{}", "{}", "{}")""".format(pid, cid, par, cmt, sr, time, sc)
+        exchange_bldr(sql)
+    except Exception as e:
+        print("Error_has_par", str(e))
+
+def sql_insert_no_par(cid, pid, cmt, sr, time, sc):
+    try:
+        sql = """insert into parent_reply (parent_id, comment_id, comment, subreddit, unix, score) values ("{}", "{}", "{}", "{}", "{}", "{}")""".format(pid, cid, cmt, sr, time, sc)
+        exchange_bldr(sql)
+    except Exception as e:
+        print("Error_no_parent", str(e))
+
+def exchange_bldr(sql):
+    global sql_change
+    sql_change.append(sql)
+    if (len(sql_change) > 1200):
+        c.execute("BEGIN TRANSACTION")
+        for s in sql_change:
+            try:
+                c.execute(s)
+            except:
+                pass
+        connection.commit()
+        sql_change = []
+    
+
+if __name__ == "__main__":
+    create_table()
+    
+    row_counter = 0
+    paired_rows = 0
+    
+    with open("RC_{}".format(timeframe, timeframe), buffering=1000) as file:
+        for row in file:
+            #print(row)
+            row_counter += 1
+            row = json.loads(row)
+            parent_id = row["parent_id"]
+            comment_id = row["link_id"]
+            body = formation_data(row["body"])
+            created_utc = row["created_utc"]
+            score = row["score"]
+            subreddit = row["subreddit"]
+            parent_data = find_parent(parent_id)
+            
+            if (score >= 2):
+                if (accept(body)):
+                    existing_comment_score = find_existing_score(parent_id)
+                    if (existing_comment_score):
+                        if (score > existing_comment_score):
+                            sql_insert_rep_cmt(comment_id, parent_id, parent_data, body, subreddit, created_utc, score)
+                    else:
+                        if (parent_data):
+                            sql_insert_has_par(comment_id, parent_id, parent_data, body, subreddit, created_utc, score)
+                            paired_rows += 1
+                        else:
+                            sql_insert_no_par(comment_id, parent_id, body, subreddit, created_utc, score)
+                                        
+            if (row_counter % 100000 == 0):
+                print(f"Total row : {row_counter} paired row : {paired_rows} times : {str(datetime.now())}")
+                
+                
+                
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
+            
