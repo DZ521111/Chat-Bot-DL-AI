@@ -14,6 +14,7 @@ sql_change = []
 connection = sqlite3.connect(f"{timeframe}.db")
 c = connection.cursor()
 
+# create a table for chat bot
 def create_table():
     c.execute("""CREATE TABLE IF NOT EXISTS
               parent_answer(parent_id text primary key,
