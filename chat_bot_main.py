@@ -22,6 +22,7 @@ def create_table():
               comment text, subreddit text, unix int,
               score int)""")
 
+# formation of data
 def formation_data(data):
     data = data.replace("\n", "  new_line_char ").replace("\r", "  new_line_char ").replace('"', "'")
     return data
