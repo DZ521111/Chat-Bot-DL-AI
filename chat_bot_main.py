@@ -55,6 +55,7 @@ def find_existing_score(pid):
         print("find_score", e)
         return False
 
+# accept or not
 def accept(data):
     if (len(data.split(" ")) > 50 or len(data) < 1):
         return False
