@@ -27,6 +27,7 @@ def formation_data(data):
     data = data.replace("\n", "  new_line_char ").replace("\r", "  new_line_char ").replace('"', "'")
     return data
 
+# find parents from database
 def find_parent(pid):
     try:
         sql = f"select comment from parent_answer where comment_id = '{pid}' limit 1"
