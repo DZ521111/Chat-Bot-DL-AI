@@ -41,6 +41,7 @@ def find_parent(pid):
         print("find_parent", e)
         return False
 
+# find existing score from database
 def find_existing_score(pid):
     try:
         sql = f"select score from parent_answer where parent_id = '{pid}' limit 1"
