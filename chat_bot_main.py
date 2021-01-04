@@ -9,6 +9,7 @@ import sqlite3
 import json
 from datetime import datetime
 
+# fetch the database
 timeframe = "2015-01"
 sql_change = []
 connection = sqlite3.connect(f"{timeframe}.db")
