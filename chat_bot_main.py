@@ -98,7 +98,8 @@ def sql_insert_no_par(cid, pid, cmt, sr, time, sc):
     try:
         sql = """insert into parent_answer (parent_id, comment_id, comment, subreddit, unix, score) values ("{}", "{}", "{}", "{}", "{}", "{}");""".format(pid, cid, cmt, sr, int(time), sc)
         exchange_bldr(sql)
-    
+    except Exception as e:
+        print("Error_no_parent", str(e))
 
 
 
