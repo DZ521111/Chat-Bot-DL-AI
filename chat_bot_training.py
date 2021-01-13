@@ -41,5 +41,4 @@ for tf in timeframes:
                     f.write(content + "\n")
         counter += 1
 
-        if (counter % 20 == 0):
-            print(counter * limit, "rows complete till now!")
+        
